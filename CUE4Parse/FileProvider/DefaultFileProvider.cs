@@ -101,7 +101,16 @@ namespace CUE4Parse.FileProvider
                 }
 
                 // Only load containers if .uproject file is not found
-                if (uproject is null && (upperExt is "PAK" or "UTOC" || (upperExt == "UPAK" && Versions.Game is GAME_LordOfMysteries)))
+                // Lord of Mysteries has a cumulative package.manifest that
+                // describes the live IoStore chunks. Its legacy .utoc files
+                // stay beside the containers after an update and can point at
+                // an older global chunk, so LoMDefaultFileProvider registers
+                // the manifest-generated readers instead. Keep pak/upak
+                // discovery here; only skip the stale .utoc path.
+                if (uproject is null && (
+                    upperExt is "PAK" ||
+                    upperExt is "UPAK" && Versions.Game is GAME_LordOfMysteries ||
+                    upperExt is "UTOC" && Versions.Game is not GAME_LordOfMysteries))
                 {
                     if (file.FullName.Contains(@"Binaries\ThirdParty\CEF", StringComparison.OrdinalIgnoreCase) || file.FullName.Contains(@"Binaries\Win32\host") || file.FullName.Contains(@"Binaries\Win64\host") || file.FullName.Contains(@"\qtwebengine_") || file.FullName.Contains(@"NexonPlatformWebView\ThirdParty") || file.FullName.Contains("SnapversePCGameSDK")) continue;
                     RegisterVfs(file);

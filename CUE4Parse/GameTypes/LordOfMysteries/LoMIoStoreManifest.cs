@@ -25,8 +25,12 @@ public sealed class LoMIoStoreManifest
         foreach (var group in ownerGroups)
         {
             var tocName = Path.ChangeExtension(group.BasePath, ".utoc");
-            if (File.Exists(tocName))
-                continue; // Normal .utoc files might already exist
+            // The launcher keeps a legacy .utoc beside the containers, but it
+            // is not refreshed when a new client build changes the global
+            // container. The package manifest is authoritative for the live
+            // chunk table, so always synthesize the TOC from it. This also
+            // preserves patch-aware behavior for containers whose changed
+            // chunks are spread across kscache partitions.
 
             var tocBytes = ToIoStoreTocBytes(manifest, compressionBlockSize, group.Owners);
             manifests.Add(new LoMIoStoreManifest(new FByteArchive(tocName, tocBytes, versions)));
